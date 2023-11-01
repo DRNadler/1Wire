@@ -3,7 +3,7 @@
 // Note: Provides interface from imxRT1024 to DS2485 1-wire master chip.
 // Note: DS2485 is not compatible with older DS2482 (for which lots of driver examples exist).
 //
-// Customize as needed below: Specific IO pins, LPCI2C peripheral, and DMA channels
+// Customize as needed below: LPCI2C peripheral, and DMA channels
 //
 // DS2485_ExecuteCommand does the following:
 // - initialize I2C peripheral (first time only)
@@ -167,7 +167,7 @@ static void dmaCompleteCallback(LPI2C_Type *base,
 
 int DS2485_ExecuteCommand(const uint8_t *packet, int packetSize, int delay_uSec, uint8_t *response, int responseSize)
 {
-	// Setup the I2C master
+	// Setup the I2C master if not yet initialized
 	if(!NXP_I2C_initialized) NXP_I2C_init();
 	// ToDo 1-Wire: Every-command re-initialization? Maxim code does I2C shutdown and (re-) initialization EVERY COMMAND.
 	// Might be advisable in case I2C bus gets into weird lock-up state, which never happens, right?
@@ -180,10 +180,9 @@ int DS2485_ExecuteCommand(const uint8_t *packet, int packetSize, int delay_uSec,
 
 	// ====  I2C write to slave DS2485  ====
 	lpi2c_master_transfer_t mt_TX = {
-		.flags=kLPI2C_TransferDefaultFlag, /*!< Bit mask of options for the transfer. See enumeration #_lpi2c_master_transfer_flags for
-												available options. Set to 0 or #kLPI2C_TransferDefaultFlag for normal transfers. */
+		.flags=kLPI2C_TransferDefaultFlag, /*!< Bit mask of options for the transfer. Set to 0 or kLPI2C_TransferDefaultFlag for normal transfers. */
 		.slaveAddress=DS2485_I2C_7BIT_ADDRESS, /*!< The 7-bit slave address. */
-		.direction=kLPI2C_Write, /*!< Either #kLPI2C_Read or #kLPI2C_Write. */
+		.direction=kLPI2C_Write, /*!< Either kLPI2C_Read or kLPI2C_Write. */
 		.subaddress=0,		   /*!< Sub address. Transferred MSB first. */
 		.subaddressSize=0,	   /*!< Length of sub address to send in bytes. Maximum size is 4 bytes. */
 		.data=i2c_DMA_buf,     /*!< Pointer to data to transfer. */
@@ -200,10 +199,9 @@ int DS2485_ExecuteCommand(const uint8_t *packet, int packetSize, int delay_uSec,
 
 	// ====  I2C read from slave DS2485  ====
 	lpi2c_master_transfer_t mt_RX = {
-		.flags=kLPI2C_TransferDefaultFlag, /*!< Bit mask of options for the transfer. See enumeration #_lpi2c_master_transfer_flags for
-												available options. Set to 0 or #kLPI2C_TransferDefaultFlag for normal transfers. */
+		.flags=kLPI2C_TransferDefaultFlag, /*!< Bit mask of options for the transfer. Set to 0 or kLPI2C_TransferDefaultFlag for normal transfers. */
 		.slaveAddress=DS2485_I2C_7BIT_ADDRESS, /*!< The 7-bit slave address. */
-		.direction=kLPI2C_Read,/*!< Either #kLPI2C_Read or #kLPI2C_Write. */
+		.direction=kLPI2C_Read,/*!< Either kLPI2C_Read or kLPI2C_Write. */
 		.subaddress=0,		   /*!< Sub address. Transferred MSB first. */
 		.subaddressSize=0,	   /*!< Length of sub address to send in bytes. Maximum size is 4 bytes. */
 		.data=i2c_DMA_buf,     /*!< Pointer to data to transfer. */
@@ -215,6 +213,7 @@ int DS2485_ExecuteCommand(const uint8_t *packet, int packetSize, int delay_uSec,
 
 	// wait for DMA read transfer to complete
 	xSemaphoreTake( xResponseDataReadySemaphore, portMAX_DELAY );
+	// copy response from local DMA buffer to caller's response buffer
 	memcpy(response, i2c_DMA_buf, responseSize);
 
 	return 0;

@@ -186,7 +186,7 @@ bool ENS210_T::Init() {
 				(uint64_t)sequencer_memory[UID_idx+2]<<16 |
 				(uint64_t)sequencer_memory[UID_idx+1]<< 8 |
 				(uint64_t)sequencer_memory[UID_idx+0]<< 0 ;
-		printf("ENS210::Init read dieRevision=x%02X, uniqueDeviceID=x%08llX\n", dieRevision, uniqueDeviceID);
+		printf("ENS210::Init read dieRevision=x%02X, uniqueDeviceID=x%016llX\n", dieRevision, uniqueDeviceID);
 
 		// Set continuous mode and start for both temperature and humidity sensor
 		DS28E18_BuildPacket_ClearSequencerPacket();
