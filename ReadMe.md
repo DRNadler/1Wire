@@ -1,7 +1,9 @@
 # Improved 1-Wire stack for DS2485 -- *1-Wire bus* -- DS28E18
 
 ## Background
-I'm using an ENS210 high-precision temperature and humidity sensor at the end of a long 1-Wire cable. 
+I'm using an
+[ENS210 high-precision temperature and humidity sensor](https://www.sciosense.com/ens21x-family-of-high-performance-digital-temperature-and-humidity-sensors/)
+at the end of a long 1-Wire cable. 
 The 1-Wire bus is driven at the host MCU with a DS2485, and at the remote end a DS28E18 controls and powers the ENS210.
 
 I had some difficulty using the software provided by Maxim (now Analog Devices) in one of our projects.
