@@ -41,11 +41,7 @@ The C++ driver code for the ENS210 is included here along with the 1-Wire stack.
 * added platform specialization for iMXRT1024 in DS2485_port_NXP_LPI2C.c
 
 ## Pre-Built DOxygen Documentation
-I've included the complete DOxygen but can't figure out how to get GitHub to let you look at it
-(this only renders the index page). 
-If you know how to make this work let me know, Thanks!
-
-https://htmlpreview.github.io/?https://github.com/DRNadler/1Wire/blob/main/1wire_and_ENS210_doxygen/html/index.html
+[Courtesy codedocs.xyz](https://codedocs.xyz/DRNadler/1Wire/files.html)
 
 ## Reference
 [Original source from Maxim is in MAXREFDES9004.ZIP file on this DS28E18 product page](https://www.analog.com/en/products/ds28e18.html#product-tools).
