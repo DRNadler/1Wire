@@ -16,7 +16,7 @@
  *   - DS28E18 driver, which sends command sequence to DS28E18 over 1-Wire via
  *     - one_wire command layer, which calls
  *       - DS2485 driver, which calls
- *         - NXP FSL I2C driver (or any DS2485 you substitute)
+ *         - NXP FSL I2C driver (or any I2C driver you substitute)
  *
  * Notes:
  * - I2C hardware initialization takes place in the platform-specific
@@ -27,7 +27,6 @@
  */
 
 // ToDo ENS210: Add solderOffset support
-// ToDo ENS210: No need to re-send DS28E18 measurement script each measurement - just run prior loaded script
 // ToDo ENS210: conditional debug printf's
 // ToDo ENS210: Could use on-demand measurements rather than continual
 
@@ -135,7 +134,7 @@ bool ENS210_T::Init() {
 		// The ENS210 I²C interface supports standard (100kbit/s) and fast (400kbit/s) mode.
 		// The device applies all mandatory I²C protocol features for slaves: START, STOP, Acknowledge,
 		// 7-bit slave address. ENS210 does not use clock stretching.
-		// None of the other optional features (10-bit slave address, General Call, Software reset, or Device ID)
+		// None of the other optional I²C features (10-bit slave address, General Call, Software reset, or Device ID)
 		// are supported, nor are the master features (Synchronization, Arbitration, START byte).
 		DS28E18_WriteConfiguration(KHZ_400, DONT_IGNORE, I2C, /* SPI mode ignored for I2C: */MODE_0);
 
@@ -168,8 +167,8 @@ bool ENS210_T::Init() {
 		// read DS28E18 sequencer memory back to host to extract SYS_STAT and PART_ID-DIE_ID-UID values read from sensor
 		uint8_t sequencer_memory[DS28E18_BuildPacket_GetSequencerPacketSize()] = {0};
 		DS28E18_ReadSequencer(0x00, sequencer_memory, sizeof(sequencer_memory));
-		uint8_t SYS_STAT = sequencer_memory[SYS_STAT_idx];
-		uint16_t PART_ID = sequencer_memory[PART_ID_idx+1]<<8 | sequencer_memory[PART_ID_idx]; // looking for 0x0210 - OK
+		SYS_STAT = sequencer_memory[SYS_STAT_idx];
+		PART_ID = sequencer_memory[PART_ID_idx+1]<<8 | sequencer_memory[PART_ID_idx]; // looking for 0x0210 - OK
 		printf("ENS210::Init read SYS_STAT=x%02X, PARTID=x%04X\n", SYS_STAT, PART_ID);
 		assert(SYS_STAT == 1); // should be in active state - OK
 		assert(PART_ID == 0x0210);
@@ -191,7 +190,7 @@ bool ENS210_T::Init() {
 		// Set continuous mode and start for both temperature and humidity sensor
 		DS28E18_BuildPacket_ClearSequencerPacket();
 		writeRegisters(ENS210_setContinuousAndStart, sizeof(ENS210_setContinuousAndStart)); // run ENS210 sensors continuously
-		// right after starting continuous, max conversion time for both temp and humidity is 238ms
+		// Immediately after starting continuous, wait max conversion time for both temp and humidity = 238ms
 		DS28E18_BuildPacket_Utility_Delay(DELAY_256msec);
 		// Write the packet into DS28E18 sequencer memory, run it, and wait long enough for it to complete
 		bool started_OK = DS28E18_BuildPacket_WriteAndRun();
@@ -213,20 +212,36 @@ ENS210_Result_T ENS210_T::Measure() {
 		// Address this ENS210's DS28E18 controller on the 1-wire bus.
 		current_DS28E18_ROM_ID = OneWireAddress;
 
+		// Set up and run DS28E18 sequencer (inside temperature probe) to read ENS210 temperature and humidity
+		bool readTemperatureAndHumidty_OK;
+		// saved information about loaded sequence...
+		static bool DS28E18_SequenceLoaded = false;
+		static uint8_t T_VAL_idx;
+		static unsigned short TH_readSequenceLength;
+		if(!DS28E18_SequenceLoaded)		{
+			// This sequence takes ~215mSec (including read-back below)
 		// Read temperature and humidity: 6 bytes (T_VAL and H_VAL) starting at T_VAL register
 		DS28E18_BuildPacket_ClearSequencerPacket();
-		uint8_t T_VAL_idx = readRegisters(ENS210_REG_T_VAL, 6);
+			T_VAL_idx = readRegisters(ENS210_REG_T_VAL, 6);
+			TH_readSequenceLength = DS28E18_GetLastSequenceLength();
 		// Write the packet into DS28E18 sequencer memory, run it, and wait long enough for it to complete
-		bool readTemperatureAndHumidty_OK = DS28E18_BuildPacket_WriteAndRun();
+			readTemperatureAndHumidty_OK = DS28E18_BuildPacket_WriteAndRun();
+			DS28E18_SequenceLoaded = true;
+		} else {
+			// This sequence takes ~140mSec (including read-back below); saves 75mSec by not reloading DS28E18 sequencer
+			readTemperatureAndHumidty_OK = DS28E18_RerunLastSequence(TH_readSequenceLength);
+		}
 		assert(readTemperatureAndHumidty_OK);
-		// read DS28E18 sequencer memory back to host to extract values read from sensor
+		(void)readTemperatureAndHumidty_OK; // ToDo ENS210: Never observed, but perhaps handle this error?
+
+		// Read DS28E18 sequencer memory back to host to obtain values read from sensor
 		uint8_t readback2[DS28E18_BuildPacket_GetSequencerPacketSize()] = {0};
 		DS28E18_ReadSequencer(0x00, readback2, sizeof(readback2));
 		//printf("ENS210 T_VAL, H_VAL with checksums: x%02X%02X%02X, %02X%02X%02X\n",
 		//		readback2[T_VAL_idx],readback2[T_VAL_idx+1],readback2[T_VAL_idx+2],readback2[T_VAL_idx+3],readback2[T_VAL_idx+4],readback2[T_VAL_idx+5]);
 		// Lambda function extracts raw returned value and verifies checksum
 		auto GetVal = [this](uint8_t *p, uint32_t &val, bool &OK, bool &validCRC) {
-			// Note low-order value is first, then high-order, then CRC and "OK" bit
+			// Note low-order value is first byte, then high-order, then CRC and "OK" bit
 			val = p[1]<<8 | p[0];
 			OK  = p[2] & 0x01;
 			uint8_t recdCRC = (p[2]>>1)&0x7F;
@@ -265,8 +280,15 @@ ENS210_Result_T ENS210_T::Measure() {
 // ToDo ENS210: Move QwikTest and statically allocated ENS210_T instance out of driver...
 ENS210_T ENS210; // global scope object
 void ENS210_T::QwikTest() {
-	ENS210_Result_T r = ENS210.Measure();
-	r.DiagPrintf();
+	ENS210_Result_T r = Measure(); // does Init() if not yet completed
+	// report results
+	static bool initSummaryPrinted;
+	if(!initSummaryPrinted && initOK) {
+		printf("ENS210::Init read SYS_STAT=x%02X, PARTID=x%04X\n", SYS_STAT, PART_ID);
+		printf("ENS210::Init read dieRevision=x%02X, uniqueDeviceID=x%016llX\n", dieRevision, uniqueDeviceID);
+		initSummaryPrinted = true;
+	}
+		r.DiagPrintf();
 }
 
 // Compute the CRC-7 of 'val' (should only have 17 bits)

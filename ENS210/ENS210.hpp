@@ -5,8 +5,8 @@
  *      Author: Dave Nadler
  */
 
-#ifndef ENS210_HPP_
-#define ENS210_HPP_
+#ifndef ENS210_HPP_INCLUDED
+#define ENS210_HPP_INCLUDED
 
 #include <stdint.h>
 
@@ -16,8 +16,6 @@
 class ENS210_T {
 	bool initOK = false;
 	uint8_t soldercorrection = 0; // Correction due to soldering (in 1/64K); subtracted from rawTemperature by measure function.
-	uint16_t dieRevision = 0;
-	uint64_t uniqueDeviceID = 0;
 	uint32_t crc7( uint32_t val ); // calculate ENS210 checksum for a raw temperature or humidity value
 	// *** Following members are specific to the DS28E18 controlling this ENS210 on a 1-Wire bus ***
 	OneWire_ROM_ID_T OneWireAddress; ///< Address of the DS28E18 controlling this ENS210 on the 1-Wire bus.
@@ -28,10 +26,15 @@ class ENS210_T {
 	// Return value is the index of the result in the readback command sequence
 	int readRegisters(uint8_t firstRegister, int len);
 public:
+	uint16_t PART_ID; // looking for 0x0210
+	uint8_t SYS_STAT; // must be 1 in active state
+	uint16_t dieRevision = 0;
+	uint64_t uniqueDeviceID = 0;
 	ENS210_T() : OneWireAddress() {}; // ctor does NOT do device initialization; permits static allocation...
 	bool Init();
+	bool InitOK() const { return initOK; };
 	static void QwikTest();
 	ENS210_Result_T Measure();
 };
 
-#endif /* ENS210_HPP_ */
+#endif /* ENS210_HPP_INCLUDED */

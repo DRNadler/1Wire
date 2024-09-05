@@ -26,7 +26,7 @@ float ENS210_Result_T::TempCelsius() const
 	// Return m*C. This equals m*(K-273.15) = m*K - 27315*m/100 = m*t/64 - 27315*m/100
 	// Note m is the multiplier, C is temperature in Celsius, K is temperature in Kelvin, t is rawTemperature.
 	// Uses C=K-273.15 and K=t/64.
-	return t/64 - 27315L/100; //IDIV(t,64) - IDIV(27315L,100);
+	return t/64 - 273.15F; //IDIV(t,64) - IDIV(27315L,100);
 }
 float ENS210_Result_T::TempFahrenheit() const
 {
@@ -34,7 +34,7 @@ float ENS210_Result_T::TempFahrenheit() const
 	// Return m*F. This equals m*(1.8*(K-273.15)+32) = m*(1.8*K-273.15*1.8+32) = 1.8*m*K-459.67*m = 9*m*K/5 - 45967*m/100 = 9*m*t/320 - 45967*m/100
 	// Note m is the multiplier, F is temperature in Fahrenheit, K is temperature in Kelvin, t is rawTemperature.
 	// Uses F=1.8*(K-273.15)+32 and K=t/64.
-	return 9*t/320 - 45967/100; //IDIV(9*t,320) - IDIV(45967L,100);
+	return 9*t/320 - 45967/100.0F; //IDIV(9*t,320) - IDIV(45967L,100);
 	// The first multiplication stays below 32 bits (t:16, multiplier:11, 9:4)
 	// The second multiplication stays below 32 bits (multiplier:10, 45967:16)
 }
