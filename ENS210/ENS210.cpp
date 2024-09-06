@@ -170,9 +170,9 @@ bool ENS210_T::Init() {
 		SYS_STAT = sequencer_memory[SYS_STAT_idx];
 		PART_ID = sequencer_memory[PART_ID_idx+1]<<8 | sequencer_memory[PART_ID_idx]; // looking for 0x0210 - OK
 		printf("ENS210::Init read SYS_STAT=x%02X, PARTID=x%04X\n", SYS_STAT, PART_ID);
-		assert(SYS_STAT == 1); // should be in active state - OK
-		assert(PART_ID == 0x0210);
-		if( !(SYS_STAT==1 && PART_ID==0x0210) ) break;
+		assert(SYS_STAT_Valid()); // should be 1 in active state - OK
+		assert(PART_ID_Valid());
+		if( !(SYS_STAT_Valid() && PART_ID_Valid()) ) break;
 		uint8_t DIE_REV_idx = PART_ID_idx+2;
 		dieRevision = sequencer_memory[DIE_REV_idx+1]<<8 | sequencer_memory[DIE_REV_idx];
 		uint8_t UID_idx = DIE_REV_idx+2;
