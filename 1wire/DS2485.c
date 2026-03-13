@@ -1,6 +1,9 @@
 /*!
  * @file    DS2485.c
  * @brief   General library for the DS2485, supports the higher-level one_wire.c/.h API.
+ * @par DS2485 functions return 'error'
+ * 0 means "no error occurred". Usually an error is just 1,
+ *   but sometimes a lower-level error is propagated upwards...
  */
 // Modified by DRN for platform-independence 18-May-2023
 

@@ -28,11 +28,14 @@
 
 // ToDo ENS210: Add solderOffset support
 // ToDo ENS210: conditional debug printf's
-// ToDo ENS210: Could use on-demand measurements rather than continual
 
 
 #include <assert.h>
 #include <stdio.h> // Diagnostic printf
+
+// FreeRTOS APIs for QwikTest() only
+#include "FreeRTOS.h"
+#include "task.h"
 
 #include "ENS210.hpp" // public interface for this class
 
@@ -101,14 +104,13 @@ bool ENS210_T::Init() {
 		assert(OneWireInitError==0);
 		if(OneWireInitError) break;
 
-		// DS28E18 VDD_SENS (DS28E18 power to the sensor) requires 'Strong Pull-Up' 'SPU'
-		// on the 1-Wire bus. That's turned on with DS2485 1-Wire Master Configuration
-		// (Register 0) Bit 13: Strong Pullup (SPU).
+        // DS28E18 VDD_SENS (DS28E18 power to the sensor) requires 'Strong Pull-Up' 'SPU' on 1-Wire bus.
+        // That's turned on with DS2485 1-Wire Master Configuration (Register 0) Bit 13: Strong Pullup (SPU).
 		int SPUerror = OneWire_Enable_SPU(true); // DS2485 must provide strong power to 1-Wire bus
 		assert(SPUerror==0);
 		if(SPUerror) break;
 
-		// \ToDo ENS210: Assumes there's only one DS28E18 on 1-Wire bus (controlling ENS210); could search in Init()...
+        // ToDo ENS210: Assumes there's only one DS28E18 on 1-Wire bus (controlling ENS210); could search in Init()...
 		bool ds28e18_init_OK = DS28E18_Init(); // global current_DS28E18_ROM_ID is set to last 1-Wire device found
 		assert (ds28e18_init_OK);
 		if(!ds28e18_init_OK) break;
@@ -136,7 +138,9 @@ bool ENS210_T::Init() {
 		// 7-bit slave address. ENS210 does not use clock stretching.
 		// None of the other optional I²C features (10-bit slave address, General Call, Software reset, or Device ID)
 		// are supported, nor are the master features (Synchronization, Arbitration, START byte).
-		DS28E18_WriteConfiguration(KHZ_400, DONT_IGNORE, I2C, /* SPI mode ignored for I2C: */MODE_0);
+        bool configured_I2C_OK = DS28E18_WriteConfiguration(KHZ_400, DONT_IGNORE, I2C, /* SPI mode ignored for I2C: */MODE_0);
+        assert(configured_I2C_OK);
+        if(!configured_I2C_OK) break;
 
 		// Apply power to ENS210 I2C sensor (after setting pull-ups above)
 		DS28E18_BuildPacket_ClearSequencerPacket();
@@ -166,7 +170,9 @@ bool ENS210_T::Init() {
 
 		// read DS28E18 sequencer memory back to host to extract SYS_STAT and PART_ID-DIE_ID-UID values read from sensor
 		uint8_t sequencer_memory[DS28E18_BuildPacket_GetSequencerPacketSize()] = {0};
-		DS28E18_ReadSequencer(0x00, sequencer_memory, sizeof(sequencer_memory));
+        bool initSequencerReadOK = DS28E18_ReadSequencer(0x00, sequencer_memory, sizeof(sequencer_memory));
+        assert(initSequencerReadOK);
+        if(!initSequencerReadOK) break;
 		SYS_STAT = sequencer_memory[SYS_STAT_idx];
 		PART_ID = sequencer_memory[PART_ID_idx+1]<<8 | sequencer_memory[PART_ID_idx]; // looking for 0x0210 - OK
 		printf("ENS210::Init read SYS_STAT=x%02X, PARTID=x%04X\n", SYS_STAT, PART_ID);
@@ -216,7 +222,7 @@ ENS210_Result_T ENS210_T::Measure() {
 		bool readTemperatureAndHumidty_OK;
 		// saved information about loaded sequence...
 		static bool DS28E18_SequenceLoaded = false;
-		static uint8_t T_VAL_idx;
+        static uint8_t T_VAL_idx; // index to beginning of temperature value in (send and receive) sequence
 		static unsigned short TH_readSequenceLength;
 		if(!DS28E18_SequenceLoaded)		{
 			// This sequence takes ~215mSec (including read-back below)
@@ -232,11 +238,19 @@ ENS210_Result_T ENS210_T::Measure() {
 			readTemperatureAndHumidty_OK = DS28E18_RerunLastSequence(TH_readSequenceLength);
 		}
 		assert(readTemperatureAndHumidty_OK);
-		(void)readTemperatureAndHumidty_OK; // ToDo ENS210: Never observed, but perhaps handle this error?
+        if(!readTemperatureAndHumidty_OK) {
+            result.status = ENS210_Result_T::Status_I2C_error;
+            return result;
+        }
 
 		// Read DS28E18 sequencer memory back to host to obtain values read from sensor
 		uint8_t readback2[DS28E18_BuildPacket_GetSequencerPacketSize()] = {0};
-		DS28E18_ReadSequencer(0x00, readback2, sizeof(readback2));
+        bool sequencerReadOK = DS28E18_ReadSequencer(0x00, readback2, sizeof(readback2));
+        if(!sequencerReadOK) {
+            result.status = ENS210_Result_T::Status_I2C_error; // could be local I2C to DS2485 (don't know about remote I2C)
+            return result;
+        };
+
 		//printf("ENS210 T_VAL, H_VAL with checksums: x%02X%02X%02X, %02X%02X%02X\n",
 		//		readback2[T_VAL_idx],readback2[T_VAL_idx+1],readback2[T_VAL_idx+2],readback2[T_VAL_idx+3],readback2[T_VAL_idx+4],readback2[T_VAL_idx+5]);
 		// Lambda function extracts raw returned value and verifies checksum
@@ -277,10 +291,11 @@ ENS210_Result_T ENS210_T::Measure() {
 	return result;
 }
 
-// ToDo ENS210: Move QwikTest and statically allocated ENS210_T instance out of driver...
-ENS210_T ENS210; // global scope object
-void ENS210_T::QwikTest() {
+unsigned long ENS210_T::QwikTest() {
+    // perform a timed measurement
+    unsigned long startTimeMS = xTaskGetTickCount() * portTICK_PERIOD_MS;
 	ENS210_Result_T r = Measure(); // does Init() if not yet completed
+    unsigned long elapsedMS = (xTaskGetTickCount() * portTICK_PERIOD_MS) - startTimeMS;
 	// report results
 	static bool initSummaryPrinted;
 	if(!initSummaryPrinted && initOK) {
@@ -289,6 +304,7 @@ void ENS210_T::QwikTest() {
 		initSummaryPrinted = true;
 	}
 		r.DiagPrintf();
+    return elapsedMS;
 }
 
 // Compute the CRC-7 of 'val' (should only have 17 bits)

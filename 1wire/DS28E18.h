@@ -1,4 +1,4 @@
-// DS28E18.h - Driver for DS2818E slave one 1-Wire bus
+// DS28E18.h - Driver for a DS2818E slave on 1-Wire bus
 // Cleaned up by Dave Nadler 30-October-2023
 
 /*******************************************************************************
@@ -55,112 +55,112 @@ extern "C" {
 #endif
 
 typedef enum { // DS28E18_device_function_commands_T
-	COMMAND_START = 0x66,
-	WRITE_SEQUENCER = 0x11,
-	READ_SEQUENCER = 0x22,
-	RUN_SEQUENCER = 0x33,
-	WRITE_CONFIGURATION = 0x55,
-	READ_CONFIGURATION = 0x6A,
-	WRITE_GPIO_CONFIGURATION = 0x83,
-	READ_GPIO_CONFIGURATION = 0x7C,
-	DEVICE_STATUS = 0x7A,
+    COMMAND_START = 0x66,
+    WRITE_SEQUENCER = 0x11,
+    READ_SEQUENCER = 0x22,
+    RUN_SEQUENCER = 0x33,
+    WRITE_CONFIGURATION = 0x55,
+    READ_CONFIGURATION = 0x6A,
+    WRITE_GPIO_CONFIGURATION = 0x83,
+    READ_GPIO_CONFIGURATION = 0x7C,
+    DEVICE_STATUS = 0x7A,
 } DS28E18_device_function_commands_T;
 
 typedef enum { // DS28E18_one_wire_rom_commands_T
-	READ_ROM = 0x33,   ///< can only be used if there is a single slave on the bus
-	MATCH_ROM = 0x55,  ///< address a specific slave by ROM ID
-	SEARCH_ROM = 0xF0, ///< enumeration of all slaves on bus
-	SKIP_ROM = 0xCC,   ///< don't use ROM ID (applicable only when there is only 1 slave on the bus)
-	RESUME = 0xA5,     ///
-	OVERDRIVE_SKIP = 0x3C,
-	OVERDRIVE_MATCH = 0x69, ///< selected (matched ROM ID) slave goes into overdrive
+    READ_ROM = 0x33,   ///< can only be used if there is a single slave on the bus
+    MATCH_ROM = 0x55,  ///< address a specific slave by ROM ID
+    SEARCH_ROM = 0xF0, ///< enumeration of all slaves on bus
+    SKIP_ROM = 0xCC,   ///< don't use ROM ID (applicable only when there is only 1 slave on the bus)
+    RESUME = 0xA5,     ///
+    OVERDRIVE_SKIP = 0x3C,
+    OVERDRIVE_MATCH = 0x69, ///< selected (matched ROM ID) slave goes into overdrive
 } DS28E18_one_wire_rom_commands_T;
 
 typedef enum { // DS28E18_sequencer_commands_T
-	//I2C
-	I2C_START = 0x02,
-	I2C_STOP = 0x03,
-	I2C_WRITE_DATA = 0xE3,
-	I2C_READ_DATA = 0xD4,
-	I2C_READ_DATA_W_NACK_END = 0xD3,
+    //I2C
+    I2C_START = 0x02,
+    I2C_STOP = 0x03,
+    I2C_WRITE_DATA = 0xE3,
+    I2C_READ_DATA = 0xD4,
+    I2C_READ_DATA_W_NACK_END = 0xD3,
 
-	// SPI
-	SPI_WRITE_READ_BYTE = 0xC0,
-	SPI_WRITE_READ_BIT = 0xB0,
-	SPI_SS_HIGH = 0x01,
-	SPI_SS_LOW = 0x80,
+    // SPI
+    SPI_WRITE_READ_BYTE = 0xC0,
+    SPI_WRITE_READ_BIT = 0xB0,
+    SPI_SS_HIGH = 0x01,
+    SPI_SS_LOW = 0x80,
 
-	// Utility
-	UTILITY_DELAY = 0xDD,
-	UTILITY_SENS_VDD_ON = 0xCC,
-	UTILITY_SENS_VDD_OFF = 0xBB,
-	UTILITY_GPIO_BUF_WRITE = 0xD1,
-	UTILITY_GPIO_BUF_READ = 0x1D,
-	UTILITY_GPIO_CNTL_WRITE = 0xE2,
-	UTILITY_GPIO_CNTL_READ = 0x2E,
+    // Utility
+    UTILITY_DELAY = 0xDD,
+    UTILITY_SENS_VDD_ON = 0xCC,
+    UTILITY_SENS_VDD_OFF = 0xBB,
+    UTILITY_GPIO_BUF_WRITE = 0xD1,
+    UTILITY_GPIO_BUF_READ = 0x1D,
+    UTILITY_GPIO_CNTL_WRITE = 0xE2,
+    UTILITY_GPIO_CNTL_READ = 0x2E,
 } DS28E18_sequencer_commands_T;
 
 typedef enum { // DS28E18_result_byte_T
-	POR_OCCURRED = 0x44,
-	EXECUTION_ERROR = 0x55,
-	INVALID_PARAMETER = 0x77,
-	NACK_OCCURED = 0x88,
-	SUCCESS = 0xAA,
+    POR_OCCURRED = 0x44,
+    EXECUTION_ERROR = 0x55,
+    INVALID_PARAMETER = 0x77,
+    NACK_OCCURED = 0x88,
+    SUCCESS = 0xAA,
 } DS28E18_result_byte_T;
 
 typedef enum { // DS28E18_protocol_speed_T
-	KHZ_100,
-	KHZ_400,
-	KHZ_1000,
-	KHZ_2300,
+    KHZ_100,
+    KHZ_400,
+    KHZ_1000,
+    KHZ_2300,
 } DS28E18_protocol_speed_T;
 
 typedef enum { // DS28E18_ignore_nack_T
-	DONT_IGNORE,
-	IGNORE,
+    DONT_IGNORE,
+    IGNORE,
 } DS28E18_ignore_nack_T;
 
 typedef enum { // DS28E18_protocol_T
-	I2C,
-	SPI,
+    I2C,
+    SPI,
 } DS28E18_protocol_T;
 
 typedef enum { // DS28E18_spi_mode_T
-	MODE_0 = 0x00,
-	MODE_3 = 0x03,
+    MODE_0 = 0x00,
+    MODE_3 = 0x03,
 } DS28E18_spi_mode_T;
 
 typedef enum { // DS28E18_target_configuration_register_T
-	CONTROL = 0x0B,
-	BUFFER = 0x0C,
+    CONTROL = 0x0B,
+    BUFFER = 0x0C,
 } DS28E18_target_configuration_register_T;
 
 /// DS28E18 delay command argument is an exponent: Delay is 2^arg in msec.
 /// The actual delay time is from 1ms to 32s respectively
 /// Code relies on enum defined as the exponent as below.
 typedef enum { // DS28E18_utility_delay_T
-	DELAY_1msec     = 0,
-	DELAY_2msec     = 1,
-	DELAY_4msec     = 2,
-	DELAY_8msec     = 3,
-	DELAY_16msec    = 4,
-	DELAY_32msec    = 5,
-	DELAY_64msec    = 6,
-	DELAY_128msec   = 7,
-	DELAY_256msec   = 8,
-	DELAY_512msec   = 9,
-	DELAY_1024msec  = 10,
-	DELAY_2048msec  = 11,
-	DELAY_4096msec  = 12,
-	DELAY_8192msec  = 13,
-	DELAY_16384msec = 14,
-	DELAY_32768msec = 15,
+    DELAY_1msec     = 0,
+    DELAY_2msec     = 1,
+    DELAY_4msec     = 2,
+    DELAY_8msec     = 3,
+    DELAY_16msec    = 4,
+    DELAY_32msec    = 5,
+    DELAY_64msec    = 6,
+    DELAY_128msec   = 7,
+    DELAY_256msec   = 8,
+    DELAY_512msec   = 9,
+    DELAY_1024msec  = 10,
+    DELAY_2048msec  = 11,
+    DELAY_4096msec  = 12,
+    DELAY_8192msec  = 13,
+    DELAY_16384msec = 14,
+    DELAY_32768msec = 15,
 } DS28E18_utility_delay_T;
 
 typedef struct { // DS28E18_sequence_T
-	uint8_t sequenceData[512];
-	int sequenceIdx;
-	unsigned int totalSequencerDelayTime; // milliseconds
+    uint8_t sequenceData[512];
+    int sequenceIdx;  // index to next available entry in sequence data == current sequence length
+    unsigned int totalSequencerDelayTime; // milliseconds
 } DS28E18_sequence_T;
 
 
@@ -210,7 +210,8 @@ void DS28E18_BuildPacket_Utility_GpioControlWrite(uint8_t GPIO_CRTL_HI, uint8_t 
 unsigned short DS28E18_BuildPacket_Utility_GpioControlRead(void);
 void DS28E18_BuildPacket_Append(const uint8_t* sequencerCmds, size_t length);
 bool DS28E18_BuildPacket_WriteAndRun(void);
-
+unsigned short DS28E18_GetLastSequenceLength(void); // DRN addition
+bool DS28E18_RerunLastSequence(unsigned int length); // DRN addition
 
 #ifdef __cplusplus
 }

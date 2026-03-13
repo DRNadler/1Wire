@@ -1,5 +1,7 @@
 # Improved 1-Wire stack for DS2485 -- *1-Wire bus* -- DS28E18
 
+Update March-2026: Added significant error checks for robust operation.
+
 ## Background
 I'm using an
 [ENS210 high-precision temperature and humidity sensor](https://www.sciosense.com/ens21x-family-of-high-performance-digital-temperature-and-humidity-sensors/)
