@@ -1,18 +1,29 @@
-// DS2485_port_NXP_LPI2C.c - Platform-specific interface to drive DS2485 via I2C
-// NXP LPI2C and FreeRTOS version by Dave Nadler:
-//   28-October-2023   Initial version
-//   13-March-2026     Add missing error handling (in DMA option) required for robust operation.
-// Note: Provides interface from imxRT1024 to DS2485 1-wire master chip.
-// Note: DS2485 is not compatible with older DS2482 (for which lots of driver examples exist).
-//
+/**
+ * @file DS2485_port_NXP_LPI2C.c
+ * @brief Platform-specific interface used to drive the DS2485 over I2C on NXP hardware.
+ *
+ * NXP LPI2C and FreeRTOS implementation for the i.MX RT1024 platform.
+ *
+ * @par Update history
+ * - 28-October-2023  Dave Nadler  Initial version.
+ * - 13-March-2026    Dave Nadler  Added missing DMA-path error handling for robust operation.
+ *
+ * @par Notes
+ * - Provides the interface from i.MX RT1024 hardware to the DS2485 1-Wire master.
+ * - DS2485 is not compatible with the older DS2482 family, for which many example drivers exist.
+ * - Customize the selected LPI2C peripheral and DMA channels as needed.
+ *
+ * @par DS2485_ExecuteCommand responsibilities
+ * - Initialize the I2C peripheral on first use.
+ * - Send a DS2485 command or script requested by the caller.
+ * - Wait for the DS2485 to execute the command or script and collect the reply.
+ * - Read the response back from the DS2485.
+ *
+ * @todo Add time-outs in DS2485_port_NXP_LPI2C in case the DS2485 does not reply.
+ */
+
+
 // Customize as needed below: LPCI2C peripheral, and DMA channels
-//
-// DS2485_ExecuteCommand does the following:
-// - initialize I2C peripheral (first time only)
-// - send DS2485 a command or script to execute as instructed by caller.
-//   Note: DS2485 will perform command or execute script (sending data down 1-Wire, waiting, and gathering reply)
-// - wait locally for DS2485 to do it's thing - might be a while for remote 1-wire device to reply etc.
-// - read the results/response out of DS2485
 
 #define NXP_LPI2C_USE_DMA  // Non-DMA implementation below loops waiting for I2C FIFO to be empty
 

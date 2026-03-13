@@ -1,13 +1,17 @@
 /**
- * @file    one_wire.c
- * @brief   General 1-Wire API using the DS2485 1-Wire master.
- * @par Functions return 'error'; 0 means no error occurred.
+ * @file one_wire.c
+ * @brief General 1-Wire API using the DS2485 1-Wire master.
+ *
+ * @par Return convention
+ * Functions return an error code. A value of 0 means no error occurred.
+ *
+ * @par Update history - Dave Nadler Cleanups...
+ * | Date | Author | Updates |
+ * | ----: | :----: | :---- |
+ * | 18-May-2023   | Dave Nadler | Fixed compilation errors such as true versus TRUE. |
+ * | 18-May-2023   | Dave Nadler | Deleted unused platform-specific defines. |
+ * | 13-March-2026 | Dave Nadler | Added a significant number of missing error checks. |
  */
-
-// Cleaned up by Dave Nadler:
-//    18-May-2023       Fixed compilation errors (true not TRUE, etc)
-//    18-May-2023       Deleted unused platform-specific #define's
-//    13-March-2026     Add significant number of missing error-checks
 
 /*******************************************************************************
 * Copyright (C) Maxim Integrated Products, Inc., All rights Reserved.

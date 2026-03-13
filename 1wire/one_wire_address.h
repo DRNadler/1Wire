@@ -1,6 +1,9 @@
-/*!
- * @file    one_wire_address.h
- * @brief   Address of a device on a 1-Wire bus. Separate file to allow inclusion by high-level functions without namespace pollution from DS2485 etc.
+/**
+ * @file one_wire_address.h
+ * @brief Address of a device on a 1-Wire bus.
+ *
+ * Separate file to allow inclusion by higher-level functions without namespace
+ * pollution from DS2485-related definitions.
  */
 
 #ifndef ONE_WIRE_ADDRESS_H_INCLUDED

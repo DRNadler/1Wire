@@ -1,5 +1,10 @@
-// DS28E18.h - Driver for a DS2818E slave on 1-Wire bus
-// Cleaned up by Dave Nadler 30-October-2023
+/**
+ * @file DS28E18.h
+ * @brief Driver for a DS28E18 slave on a 1-Wire bus.
+ *
+ * @par Update history
+ * - 30-October-2023  Dave Nadler  Cleaned up and adapted the interface.
+ */
 
 /*******************************************************************************
 * Copyright (C) Maxim Integrated Products, Inc., All rights Reserved.

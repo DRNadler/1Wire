@@ -1,7 +1,10 @@
-/*!
- * @file    DS2485.h
- * @brief   General library for the DS2485, supports the higher-level one_wire.c/.h API.
- * @par     Most functions return 'error'; 0 means OK completion
+/**
+ * @file DS2485.h
+ * @brief General library for the DS2485, supporting the higher-level one_wire.c/.h API.
+ *
+ * @par Return convention
+ * Most functions return an error code. A value of 0 indicates successful
+ * completion.
  */
 
 /*******************************************************************************

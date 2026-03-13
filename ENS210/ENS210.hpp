@@ -1,8 +1,9 @@
-/*
- * ENS210.hpp - I2C Temperature and Humidity sensor driver
+/**
+ * @file ENS210.hpp
+ * @brief Public C++ interface for the ENS210 temperature and humidity sensor driver.
  *
- *  Created on: Oct 27, 2023
- *      Author: Dave Nadler
+ * @par Update history
+ * - 27-October-2023  Dave Nadler  Initial version.
  */
 
 #ifndef ENS210_HPP_INCLUDED

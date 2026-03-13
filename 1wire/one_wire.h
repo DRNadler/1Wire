@@ -1,6 +1,6 @@
-/*!
- * @file    one_wire.h
- * @brief   General 1-Wire API using the DS2485 1-Wire master.
+/**
+ * @file one_wire.h
+ * @brief General 1-Wire API using the DS2485 1-Wire master.
  */
 
 /*******************************************************************************

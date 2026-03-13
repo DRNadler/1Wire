@@ -1,12 +1,13 @@
-/*
- * ENS210_Result.cpp - I2C Temperature and Humidity sensor reading results
+/**
+ * @file ENS210_Result.cpp
+ * @brief ENS210 measurement-result helper implementation.
  *
- * References:
- *   Vendor-provided Arduino driver:
- *     https://github.com/sciosense/ENS210_driver (2020 Apr 06  v3)
+ * @par References
+ * Vendor-provided Arduino driver:
+ * https://github.com/sciosense/ENS210_driver (2020-04-06, v3).
  *
- *  Created on: Oct 27, 2023
- *      Author: Dave Nadler
+ * @par Update history
+ * - 27-October-2023  Dave Nadler  Initial version.
  */
 
 #include "ENS210_Result.hpp"

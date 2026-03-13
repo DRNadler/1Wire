@@ -1,10 +1,32 @@
-/*
- * ENS210.cpp - I2C Temperature and Humidity sensor driver
+/**
+ * @file ENS210.cpp
+ * @brief ENS210 temperature and humidity sensor driver.
  *
- * References:
+ * This driver operates an ENS210 over a 1-Wire bus using a DS2485 at the
+ * host end and a DS28E18 at the remote end.
+ *
+ * @par References
  *   Vendor-provided Arduino driver:
- *     https://github.com/sciosense/ENS210_driver (2020 Apr 06 v3)
+ * https://github.com/sciosense/ENS210_driver (2020-04-06, v3).
  *
+ * @par Stack topology
+ * imxRT1024 -> I2C -> DS2485 -> - - - 1-Wire - - - -> DS28E18 -> I2C -> ENS210
+ *
+ * @par Notes
+ * - Rather than driving the ENS210 directly from a host I2C controller, this
+ *   code builds a DS28E18 command sequence and executes it remotely.
+ * - I2C hardware initialization occurs in the platform-specific
+ *   DS2485_ExecuteCommand implementation.
+ *
+ * @par Update history
+ * - 27-October-2023  Dave Nadler  Initial version.
+ *
+ * @todo Add solderOffset support.
+ * @todo Add conditional debug printf support.
+ */
+
+
+/*
  * ==========================================================================
  * imxRT1024 -> I2C -> DS2485 ------> 1-Wire ------> DS28E18 -> I2C -> ENS210
  * ==========================================================================
@@ -17,13 +39,6 @@
  *     - one_wire command layer, which calls
  *       - DS2485 driver, which calls
  *         - NXP FSL I2C driver (or any I2C driver you substitute)
- *
- * Notes:
- * - I2C hardware initialization takes place in the platform-specific
- *   DS2485_ExecuteCommand, which isolates I2C access to DS2485.
- *
- *  Created on: Oct 27, 2023
- *      Author: Dave Nadler
  */
 
 // ToDo ENS210: Add solderOffset support

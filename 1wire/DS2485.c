@@ -1,12 +1,14 @@
-/*!
- * @file    DS2485.c
- * @brief   General library for the DS2485, supports the higher-level one_wire.c/.h API.
- * @par DS2485 functions return 'error'
- * 0 means "no error occurred". Usually an error is just 1,
- *   but sometimes a lower-level error is propagated upwards...
+/**
+ * @file DS2485.c
+ * @brief General library for the DS2485, supporting the higher-level one_wire.c/.h API.
+ *
+ * @par DS2485 functions return error
+ * 0 means no error occurred. Usually an error is just 1, but sometimes a
+ * lower-level error is propagated upward.
+ *
+ * @par Update history
+ * - 18-May-2023  Dave Nadler  Modified for platform independence.
  */
-// Modified by DRN for platform-independence 18-May-2023
-
 
 /*******************************************************************************
 * Copyright (C) Maxim Integrated Products, Inc., All rights Reserved.

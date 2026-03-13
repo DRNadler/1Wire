@@ -1,13 +1,21 @@
-// DS28E18.c - Driver for a DS2818E slave on a 1-Wire bus
-// Cleaned up by Dave Nadler:
-//    30-October-2023   Initial version
-//    13-March-2026     Added many missing error-checks
+/**
+ * @file DS28E18.c
+ * @brief Driver for a DS28E18 slave on a 1-Wire bus.
+ *
+ * @par Update history - Cleanups by Dave Nadler
+ * - 30-October-2023  Initial version.
+ * - 13-March-2026    Added many missing error checks.
+ *
+ * @todo Isolate DELAY_MSEC to make porting easier.
+ * @todo Use OneWire_ROM_ID_T for ROM ID in DS2485 code.
+ * @todo Add DS28E18 status register structure definition and interpretation.
+ * @todo Make a DS28E18 class to support multiple DS28E18 devices more easily.
+ */
 
 // ToDo 1-Wire: Isolate DELAY_MSEC to make porting easier
 // ToDo 1-Wire: Use OneWire_ROM_ID_T for ROM ID in DS2485 code
 // ToDo 1-Wire: Add DS28E18 status register structure definition and interpretation
 // ToDo 1-Wire: Make a DS28E18 class to support multiple DS28E18 more easily
-
 
 /*******************************************************************************
 * Copyright (C) Maxim Integrated Products, Inc., All rights Reserved.

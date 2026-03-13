@@ -1,7 +1,12 @@
-// DS2485_port_maxim.c - Platform-specific interface to drive DS2485 via I2C
-// Platform-dependent code isolated here by Dave Nadler 18-May-2023
-// Not used in SensorBox/Vario application.
-
+/**
+ * @file DS2485_port_maxim.c
+ * @brief Platform-specific interface used to drive the DS2485 over I2C in the original Maxim environment.
+ *
+ * @par Update history
+ * 18-May-2023  Dave Nadler  Isolated platform-dependent code in this source file.
+ *
+ * @note This implementation is not used in the SensorBox/Vario application.
+ */
 
 /*******************************************************************************
 * Copyright (C) Maxim Integrated Products, Inc., All rights Reserved.
