@@ -45,6 +45,7 @@ The C++ driver code for the ENS210 is included here along with the 1-Wire stack.
   * in APIs, use const when passing read-only arrays (enables constant ie flash-resident data to be passed)
   * use static const for constant parameter arrays (save code space and runtime)
   * DS28E18 especially: API rationalized
+  * Added many, many, many missing error checks and error handling blocks
 * fixed a few bugs
 * added platform specialization for iMXRT1024 in DS2485_port_NXP_LPI2C.c
 
